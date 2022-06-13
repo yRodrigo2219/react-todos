@@ -1,10 +1,13 @@
 import { MantineProvider } from "@mantine/core";
+import AuthProvider from "./contexts/auth";
 import Routes from "./Routes";
 
 export default function App() {
   return (
-    <MantineProvider theme={{}}>
-      <Routes />
-    </MantineProvider>
+    <AuthProvider>
+      <MantineProvider theme={{}}>
+        <Routes />
+      </MantineProvider>
+    </AuthProvider>
   );
 }
