@@ -8,6 +8,7 @@ import {
   useMantineTheme,
   Stack,
   Menu,
+  Loader,
 } from "@mantine/core";
 import {
   UserSearch,
@@ -15,16 +16,31 @@ import {
   Logout as LogoutIcon,
   UserCircle,
 } from "tabler-icons-react";
-import { useMediaQuery, useDisclosure } from "@mantine/hooks";
+import {
+  useMediaQuery,
+  useDisclosure,
+  useDebouncedValue,
+} from "@mantine/hooks";
 
 import FullLogo from "../assets/FullLogo.png";
 import { useAuth } from "../contexts/auth";
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useFetch } from "../hooks/useFetch";
+import api from "../services/api";
 
 export default function Header() {
   const { user, logout } = useAuth();
+
   const [settingsOpened, handlersSettings] = useDisclosure(false);
   const navigate = useNavigate();
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebouncedValue(search, 500);
+  const { data, isFetching } = useFetch(
+    api.get,
+    `/api/v1/users?search=${debouncedSearch}`
+  );
 
   const theme = useMantineTheme();
   const matches = useMediaQuery(
@@ -51,9 +67,11 @@ export default function Header() {
               {matches ? null : (
                 <Autocomplete
                   placeholder="Procurar usuário"
-                  data={["rodrigo5", "rodrigo3"]}
+                  data={data?.map((obj) => obj.username) ?? []}
+                  value={search}
+                  onChange={setSearch}
                   radius="xl"
-                  icon={<UserSearch />}
+                  icon={isFetching ? <Loader size="xs" /> : <UserSearch />}
                   style={{ maxWidth: "min(50vw, 25rem)" }}
                   onItemSubmit={goToProfile}
                 />
@@ -104,7 +122,9 @@ export default function Header() {
           {matches ? (
             <Autocomplete
               placeholder="Procurar usuário"
-              data={["y2219", "rodrigo"]}
+              data={data?.map((obj) => obj.username) ?? []}
+              value={search}
+              onChange={setSearch}
               radius="xl"
               icon={<UserSearch />}
               onItemSubmit={goToProfile}

@@ -13,6 +13,7 @@ import {
   RadioGroup,
   Radio,
   Paper,
+  LoadingOverlay,
 } from "@mantine/core";
 import { Trash, Edit, Plus } from "tabler-icons-react";
 import { useEffect, useState } from "react";
@@ -28,8 +29,6 @@ import {
   updateToDo,
 } from "../../services/api";
 import { useModals } from "@mantine/modals";
-
-export const Ac = Accordion;
 
 export default function ProfilePage({ own }) {
   const { user, logout } = useAuth();
@@ -251,6 +250,7 @@ export default function ProfilePage({ own }) {
 
   return (
     <Container size="xl">
+      <LoadingOverlay visible={false} />
       <Container size="lg">
         <Stack spacing="xl">
           <Space h="md" />
