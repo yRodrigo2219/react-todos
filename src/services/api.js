@@ -32,8 +32,10 @@ export async function getUserInfo(username) {
   return response.data;
 }
 
-export async function getUserToDos(username) {
-  const response = await api.get(`/api/v1/users/${username}/todos`);
+export async function getUserToDos(username, filter) {
+  const response = await api.get(`/api/v1/users/${username}/todos`, {
+    params: { ...filter },
+  });
 
   return response.data;
 }

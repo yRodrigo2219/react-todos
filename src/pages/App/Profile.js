@@ -10,6 +10,9 @@ import {
   TextInput,
   Textarea,
   Center,
+  RadioGroup,
+  Radio,
+  Paper,
 } from "@mantine/core";
 import { Trash, Edit, Plus } from "tabler-icons-react";
 import { useEffect, useState } from "react";
@@ -30,36 +33,63 @@ export const Ac = Accordion;
 
 export default function ProfilePage({ own }) {
   const { user, logout } = useAuth();
+
   const { username } = useParams();
   const [isOwner, setIsOwner] = useState(own);
+
+  const [filter, setFilter] = useState({
+    visibility: isOwner ? "all" : "public",
+    status: "all",
+  });
   const [tasks, setTasks] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
-  const [updateTasks, setUpdateTasks] = useState(false);
+  const [shouldUpdateTasks, setShouldUpdateTasks] = useState(false);
+
   const modals = useModals();
 
   useEffect(() => {
-    if (updateTasks) {
-      handleUserTodos(user.username);
+    if (shouldUpdateTasks) {
+      if (username) fetchUserTodos(username);
+      else fetchUserTodos(user.username);
     }
-    setUpdateTasks(false);
-  }, [updateTasks]);
+    setShouldUpdateTasks(false);
+    // eslint-disable-next-line
+  }, [shouldUpdateTasks]);
 
   useEffect(() => {
     if (username) {
       setIsOwner(username === user?.username);
-      handleUserTodos(username);
-      handleUserInfo(username);
+      setFilter({
+        ...filter,
+        visibility: username === user?.username ? "all" : "public",
+      });
+      fetchUserInfo(username);
     } else {
       setIsOwner(own);
-      handleUserTodos(user.username);
-      handleUserInfo(user.username);
+      setFilter({
+        ...filter,
+        visibility: "all",
+      });
+      fetchUserInfo(user.username);
     }
+
+    setShouldUpdateTasks(true);
+    // eslint-disable-next-line
   }, [username, own, user]);
+
+  function handleFilterChange(key, value) {
+    setFilter({
+      ...filter,
+      [key]: value,
+    });
+
+    setShouldUpdateTasks(true);
+  }
 
   async function handleTaskAdd(newTask) {
     try {
       await createToDo(user.username, newTask);
-      setUpdateTasks(true);
+      setShouldUpdateTasks(true);
     } catch (error) {
       const errorList = error.response.data.errors;
       openErrorModal("Erro ao adicionar tarefa", errorList);
@@ -69,7 +99,7 @@ export default function ProfilePage({ own }) {
   async function handleTaskUpdate(id, change) {
     try {
       await updateToDo(user.username, id, change);
-      setUpdateTasks(true);
+      setShouldUpdateTasks(true);
     } catch (error) {
       const errorList = error.response.data.errors;
       openErrorModal("Erro ao modificar tarefa", errorList);
@@ -79,14 +109,14 @@ export default function ProfilePage({ own }) {
   async function handleTaskDelete(id) {
     try {
       await deleteToDo(user.username, id);
-      setUpdateTasks(true);
+      setShouldUpdateTasks(true);
     } catch (error) {
       const errorList = error.response.data.errors;
       openErrorModal("Erro ao deletar tarefa", errorList);
     }
   }
 
-  async function handleUserInfo(username) {
+  async function fetchUserInfo(username) {
     try {
       const info = await getUserInfo(username);
 
@@ -97,9 +127,9 @@ export default function ProfilePage({ own }) {
     }
   }
 
-  async function handleUserTodos(username) {
+  async function fetchUserTodos(username) {
     try {
-      const todos = await getUserToDos(username);
+      const todos = await getUserToDos(username, filter);
 
       setTasks(todos);
     } catch (error) {
@@ -158,26 +188,21 @@ export default function ProfilePage({ own }) {
               title: e.target[0].value,
               description: e.target[1].value,
               is_public: e.target[2].checked,
-              is_done: e.target[2].checked,
+              is_done: e.target[3].checked,
             });
+            modals.closeModal(id);
           }}
         >
           <Stack>
-            <TextInput label="Título" placeholder="Título da tarefa" />
+            <TextInput label="Título" placeholder="Título da tarefa" required />
             <Textarea
               label="Descrição"
               placeholder="Descreva sua tarefa aqui"
+              required
             />
             <Checkbox label="É pública?" />
             <Checkbox label="Já está concluída?" />
-            <Button
-              fullWidth
-              onClick={() => {
-                modals.closeModal(id);
-              }}
-              mt="md"
-              type="submit"
-            >
+            <Button fullWidth mt="md" type="submit" leftIcon={<Plus />}>
               Adicionar Tarefa
             </Button>
           </Stack>
@@ -198,6 +223,7 @@ export default function ProfilePage({ own }) {
               description: e.target[1].value,
               is_public: e.target[2].checked,
             });
+            modals.closeModal(id);
           }}
         >
           <Stack>
@@ -205,21 +231,16 @@ export default function ProfilePage({ own }) {
               label="Título"
               placeholder="Título da tarefa"
               defaultValue={task.title}
+              required
             />
             <Textarea
               label="Descrição"
               placeholder="Descreva sua tarefa aqui"
               defaultValue={task.description}
+              required
             />
             <Checkbox label="É pública?" defaultChecked={task.is_public} />
-            <Button
-              fullWidth
-              onClick={() => {
-                modals.closeModal(id);
-              }}
-              mt="md"
-              type="submit"
-            >
+            <Button fullWidth mt="md" type="submit">
               Confirmar Edição
             </Button>
           </Stack>
@@ -238,11 +259,39 @@ export default function ProfilePage({ own }) {
             <ProfileInfo name={userInfo.name} username={userInfo.username} />
           )}
 
-          <Center>
-            <Button leftIcon={<Plus />} onClick={openAddTaskModal}>
-              Adicionar Tarefa
-            </Button>
-          </Center>
+          <Group position="apart">
+            <Space h="xl" />
+            <Paper shadow="xs" p="md">
+              <RadioGroup
+                label="Selecione a visibilidade"
+                value={filter.visibility}
+                onChange={(e) => handleFilterChange("visibility", e)}
+                spacing="xs"
+              >
+                <Radio value="all" label="Todos" disabled={!isOwner} />
+                <Radio value="private" label="Privados" disabled={!isOwner} />
+                <Radio value="public" label="Públicos" disabled={!isOwner} />
+              </RadioGroup>
+              <RadioGroup
+                label="Selecione o status"
+                value={filter.status}
+                onChange={(e) => handleFilterChange("status", e)}
+                spacing="xs"
+              >
+                <Radio value="all" label="Todos" />
+                <Radio value="done" label="Feitos" />
+                <Radio value="not_done" label="Não feitos" />
+              </RadioGroup>
+            </Paper>
+          </Group>
+
+          {isOwner && (
+            <Center>
+              <Button leftIcon={<Plus />} onClick={openAddTaskModal}>
+                Adicionar Tarefa
+              </Button>
+            </Center>
+          )}
 
           <Accordion disableIconRotation multiple>
             {tasks.map((task) => (
@@ -255,7 +304,8 @@ export default function ProfilePage({ own }) {
                     radius="xl"
                     checked={task.is_done}
                     onChange={() => {
-                      handleTaskUpdate(task.id, { is_done: !task.is_done });
+                      isOwner &&
+                        handleTaskUpdate(task.id, { is_done: !task.is_done });
                     }}
                     onClick={(e) => e.stopPropagation()}
                   />

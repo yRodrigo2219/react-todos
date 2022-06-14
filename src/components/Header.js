@@ -51,7 +51,7 @@ export default function Header() {
               {matches ? null : (
                 <Autocomplete
                   placeholder="Procurar usuário"
-                  data={["y2219", "rodrigo"]}
+                  data={["rodrigo5", "rodrigo3"]}
                   radius="xl"
                   icon={<UserSearch />}
                   style={{ maxWidth: "min(50vw, 25rem)" }}
