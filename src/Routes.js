@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/auth";
 import Login from "./pages/Auth/Login";
 import Profile from "./pages/App/Profile";
@@ -13,6 +13,10 @@ export default function AppRoutes() {
       {signed ? <Header /> : null}
 
       <Routes>
+        <Route
+          path="/perfil/:username"
+          element={signed ? <Profile /> : <Navigate to="/" />}
+        />
         <Route
           path="/registro"
           element={signed ? <Profile own /> : <Register />}

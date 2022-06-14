@@ -7,19 +7,33 @@ import {
   Avatar,
   useMantineTheme,
   Stack,
+  Menu,
 } from "@mantine/core";
-import { UserSearch, Settings } from "tabler-icons-react";
-import { useMediaQuery } from "@mantine/hooks";
+import {
+  UserSearch,
+  UserExclamation,
+  Logout as LogoutIcon,
+  UserCircle,
+} from "tabler-icons-react";
+import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 
 import FullLogo from "../assets/FullLogo.png";
 import { useAuth } from "../contexts/auth";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Header() {
-  const { user } = useAuth();
+  const { user, Logout } = useAuth();
+  const [settingsOpened, handlersSettings] = useDisclosure(false);
+  const navigate = useNavigate();
+
   const theme = useMantineTheme();
   const matches = useMediaQuery(
     theme.fn.smallerThan("xs").replace("@media ", "")
   );
+
+  function goToProfile(selected) {
+    navigate(`/perfil/${selected.value}`);
+  }
 
   return (
     <Container fluid style={{ boxShadow: "0 1px 6px 0 rgb(32 33 36 / 28%)" }}>
@@ -41,24 +55,51 @@ export default function Header() {
                   radius="xl"
                   icon={<UserSearch />}
                   style={{ maxWidth: "min(50vw, 25rem)" }}
+                  onItemSubmit={goToProfile}
                 />
               )}
             </Group>
 
-            <Group noWrap style={{ flexGrow: 0 }}>
-              <ActionIcon size="lg">
-                <Settings size="2rem" />
-              </ActionIcon>
-              <ActionIcon size="xl" radius="xl">
-                <Avatar
-                  src={`https://avatars.dicebear.com/api/micah/${"y2219"}.svg?flip=true`}
-                  alt="Profile"
-                  height="3rem"
-                  width="auto"
-                  radius="xl"
-                />
-              </ActionIcon>
-            </Group>
+            <Menu
+              style={{ flexGrow: 0 }}
+              opened={settingsOpened}
+              onOpen={handlersSettings.open}
+              onClose={handlersSettings.close}
+              position="left"
+              control={
+                <ActionIcon size="xl" radius="xl">
+                  <Avatar
+                    src={`https://avatars.dicebear.com/api/micah/${"y2219"}.svg?flip=true`}
+                    alt="Profile"
+                    radius="xl"
+                  />
+                </ActionIcon>
+              }
+            >
+              <Menu.Label>Conta</Menu.Label>
+              <Menu.Item
+                icon={<UserCircle size="1rem" />}
+                component={Link}
+                to="/"
+              >
+                Mostrar Perfil
+              </Menu.Item>
+              <Menu.Item
+                icon={<UserExclamation size="1rem" />}
+                component={Link}
+                to="/editar-perfil"
+              >
+                Editar Perfil
+              </Menu.Item>
+              <Menu.Label>Sessão</Menu.Label>
+              <Menu.Item
+                color="red"
+                icon={<LogoutIcon size="1rem" />}
+                onClick={Logout}
+              >
+                Sair
+              </Menu.Item>
+            </Menu>
           </Group>
           {matches ? (
             <Autocomplete
@@ -66,6 +107,7 @@ export default function Header() {
               data={["y2219", "rodrigo"]}
               radius="xl"
               icon={<UserSearch />}
+              onItemSubmit={goToProfile}
             />
           ) : null}
         </Stack>
