@@ -30,6 +30,7 @@ export default function LoginPage() {
             padding: "0.5rem",
           },
         })}
+        my="3vh"
       >
         <Stack justify="flex-start" spacing="xl">
           <Center>
