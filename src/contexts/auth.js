@@ -14,27 +14,32 @@ export function useAuth() {
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
 
-  async function Login(email, password) {
-    const response = await apiLogin(email, password);
+  async function login(info) {
+    try {
+      const response = await apiLogin(info.email, info.password);
 
-    if (!response.error) {
       api.defaults.headers.common["Authorization"] = response.token;
       setUser(response);
 
-      localStorage.setItem(LOCAL_USER, JSON.stringify(response));
-    } else {
-      throw Error("Erro no login!");
+      if (info.remember)
+        localStorage.setItem(LOCAL_USER, JSON.stringify(response));
+      else sessionStorage.setItem(LOCAL_USER, JSON.stringify(response));
+    } catch (error) {
+      alert("Erro no login!");
     }
   }
 
-  function Logout() {
+  function logout() {
     delete api.defaults.headers.common["Authorization"];
     setUser(null);
     localStorage.removeItem(LOCAL_USER);
+    sessionStorage.removeItem(LOCAL_USER);
   }
 
   useEffect(() => {
-    const storagedUser = localStorage.getItem(LOCAL_USER);
+    const storagedUser = localStorage.getItem(LOCAL_USER)
+      ? localStorage.getItem(LOCAL_USER)
+      : sessionStorage.getItem(LOCAL_USER);
 
     if (storagedUser) {
       const data = JSON.parse(storagedUser);
@@ -50,8 +55,8 @@ export default function AuthProvider({ children }) {
       value={{
         signed: Boolean(user),
         user,
-        Login,
-        Logout,
+        login,
+        logout,
       }}
     >
       {children}

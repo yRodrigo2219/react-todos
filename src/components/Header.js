@@ -22,7 +22,7 @@ import { useAuth } from "../contexts/auth";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Header() {
-  const { user, Logout } = useAuth();
+  const { user, logout } = useAuth();
   const [settingsOpened, handlersSettings] = useDisclosure(false);
   const navigate = useNavigate();
 
@@ -69,7 +69,7 @@ export default function Header() {
               control={
                 <ActionIcon size="xl" radius="xl">
                   <Avatar
-                    src={`https://avatars.dicebear.com/api/micah/${"y2219"}.svg?flip=true`}
+                    src={`https://avatars.dicebear.com/api/micah/${user?.username}.svg?flip=true`}
                     alt="Profile"
                     radius="xl"
                   />
@@ -95,7 +95,7 @@ export default function Header() {
               <Menu.Item
                 color="red"
                 icon={<LogoutIcon size="1rem" />}
-                onClick={Logout}
+                onClick={logout}
               >
                 Sair
               </Menu.Item>

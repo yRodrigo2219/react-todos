@@ -26,13 +26,36 @@ export async function createUser(name, username, email, password) {
 }
 
 export async function getUserInfo(username) {
-  const response = await api.post(`/api/v1/users/${username}`);
+  const response = await api.get(`/api/v1/users/${username}`);
+  console.log(response.data);
 
   return response.data;
 }
 
 export async function getUserToDos(username) {
-  const response = await api.post(`/api/v1/users/${username}/todos`);
+  const response = await api.get(`/api/v1/users/${username}/todos`);
+
+  return response.data;
+}
+
+export async function createToDo(username, task) {
+  const response = await api.post(`/api/v1/users/${username}/todos`, {
+    ...task,
+  });
+
+  return response.data;
+}
+
+export async function updateToDo(username, id, change) {
+  const response = await api.put(`/api/v1/users/${username}/todos/${id}`, {
+    ...change,
+  });
+
+  return response.data;
+}
+
+export async function deleteToDo(username, id) {
+  const response = await api.delete(`/api/v1/users/${username}/todos/${id}`);
 
   return response.data;
 }
