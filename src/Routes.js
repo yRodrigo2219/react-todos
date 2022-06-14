@@ -3,12 +3,15 @@ import { useAuth } from "./contexts/auth";
 import Login from "./pages/Auth/Login";
 import Profile from "./pages/App/Profile";
 import Register from "./pages/Auth/Register";
+import Header from "./components/Header";
 
 export default function AppRoutes() {
   const { signed } = useAuth();
 
   return (
     <BrowserRouter>
+      {signed ? <Header /> : null}
+
       <Routes>
         <Route
           path="/registro"

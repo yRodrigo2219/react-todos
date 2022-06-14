@@ -7,8 +7,6 @@ import {
   Text,
   PasswordInput,
   Button,
-  Anchor,
-  Checkbox,
   Box,
   Group,
   useMantineTheme,

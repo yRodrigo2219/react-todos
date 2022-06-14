@@ -48,7 +48,7 @@ export default function AuthProvider({ children }) {
   return (
     <AuthContext.Provider
       value={{
-        signed: Boolean(user),
+        signed: !Boolean(user),
         user,
         Login,
         Logout,
