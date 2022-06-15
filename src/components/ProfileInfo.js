@@ -1,4 +1,5 @@
 import { Avatar, Stack, Group, Text } from "@mantine/core";
+import { avatarSrc } from "../services/avatar";
 
 export default function ProfileInfo({ name, username }) {
   return (
@@ -9,11 +10,7 @@ export default function ProfileInfo({ name, username }) {
         },
       })}
     >
-      <Avatar
-        src={`https://avatars.dicebear.com/api/micah/${username}.svg`}
-        size="10rem"
-        radius="50%"
-      />
+      <Avatar src={avatarSrc(username)} size="10rem" radius="50%" />
       <Stack spacing="xs">
         <Text style={{ fontSize: "2rem" }}>{name}</Text>
         <Text size="xl">@{username}</Text>

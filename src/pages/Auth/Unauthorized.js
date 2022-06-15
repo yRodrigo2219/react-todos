@@ -1,9 +1,18 @@
 import { Center, Space, Stack, Title, Anchor, Text } from "@mantine/core";
 import { HandStop } from "tabler-icons-react";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import useCountdown from "../../hooks/useCountdown";
+import { useEffect } from "react";
 
 export default function Unauthorized() {
+  const { time, isFinished } = useCountdown(5);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isFinished()) navigate("/");
+  }, [isFinished()]);
+
   return (
     <Center style={{ minHeight: "100vh" }}>
       <Stack align="center" spacing="xs">
@@ -22,10 +31,11 @@ export default function Unauthorized() {
         </Title>
         <Space h="lg" />
 
-        <Text size="xl">
-          Parece que você ainda não tem permissão para acessar esta página!{" "}
+        <Text size="xl" px="xs" align="center">
+          Parece que você ainda não tem permissão para acessar esta página!
+          <br /> Você será redirecionado para o inicio em {time} segundos!{" "}
           <Anchor component={Link} to="/" size="xl">
-            Voltar para o inicio...
+            Voltar para o inicio agora...
           </Anchor>
         </Text>
       </Stack>

@@ -34,6 +34,7 @@ import {
   useDebouncedValue,
 } from "@mantine/hooks";
 import api from "../services/api";
+import { avatarSrc } from "../services/avatar";
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -95,7 +96,7 @@ export default function Header() {
               control={
                 <ActionIcon size="xl" radius="xl">
                   <Avatar
-                    src={`https://avatars.dicebear.com/api/micah/${user?.username}.svg?flip=true`}
+                    src={avatarSrc(user?.username, true)}
                     alt="Profile"
                     radius="xl"
                   />

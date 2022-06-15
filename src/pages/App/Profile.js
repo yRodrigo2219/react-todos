@@ -136,7 +136,7 @@ export default function ProfilePage({ own }) {
   }
 
   return (
-    <Container size="xl">
+    <Container size="xl" pb="xl">
       <LoadingOverlay visible={isFetchingTodos || isFetchingUserInfo} />
       {!fetchingUserInfoError ? (
         <Container size="lg">

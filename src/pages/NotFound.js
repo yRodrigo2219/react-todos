@@ -22,7 +22,7 @@ export default function NotFound() {
         </Title>
         <Space h="lg" />
 
-        <Text size="xl">
+        <Text size="xl" px="xs" align="center">
           Parece que a página pesquisada não existe!{" "}
           <Anchor component={Link} to="/" size="xl">
             Voltar para página inicial...

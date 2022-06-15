@@ -6,6 +6,7 @@ import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
 import Unauthorized from "./pages/Auth/Unauthorized";
 import Profile from "./pages/App/Profile";
+import EditProfile from "./pages/App/EditProfile";
 import NotFound from "./pages/NotFound";
 
 import Header from "./components/Header";
@@ -30,6 +31,10 @@ export default function AppRoutes() {
           element={signed ? <Profile own /> : <Register />}
         />
         <Route path="/" element={signed ? <Profile own /> : <Login />} />
+        <Route
+          path="/editar-perfil"
+          element={signed ? <EditProfile /> : <Unauthorized />}
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
