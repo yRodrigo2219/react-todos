@@ -1,3 +1,4 @@
+// Libs Gráficas
 import {
   TextInput,
   Center,
@@ -11,12 +12,17 @@ import {
   Group,
   useMantineTheme,
 } from "@mantine/core";
-import { Link } from "react-router-dom";
 import { Mail, Lock, UserCircle, At } from "tabler-icons-react";
-import { useMediaQuery } from "@mantine/hooks";
 
+// React
+import { Link } from "react-router-dom";
+
+// Custom Components
 import FullLogo from "../../assets/FullLogo.png";
 import TodoHero from "../../assets/TodoHero.png";
+
+// Hooks & Misc.
+import { useMediaQuery } from "@mantine/hooks";
 
 export default function RegisterPage() {
   const theme = useMantineTheme();

@@ -1,3 +1,4 @@
+// Libs Gráficas
 import {
   Container,
   Group,
@@ -16,17 +17,22 @@ import {
   Logout as LogoutIcon,
   UserCircle,
 } from "tabler-icons-react";
+
+// React
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+
+// Custom Components
+import FullLogo from "../assets/FullLogo.png";
+
+// Hooks & Misc.
+import { useAuth } from "../contexts/auth";
+import { useFetch } from "../hooks/useFetch";
 import {
   useMediaQuery,
   useDisclosure,
   useDebouncedValue,
 } from "@mantine/hooks";
-
-import FullLogo from "../assets/FullLogo.png";
-import { useAuth } from "../contexts/auth";
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { useFetch } from "../hooks/useFetch";
 import api from "../services/api";
 
 export default function Header() {
@@ -71,9 +77,11 @@ export default function Header() {
                   value={search}
                   onChange={setSearch}
                   radius="xl"
-                  icon={isFetching ? <Loader size="xs" /> : <UserSearch />}
+                  icon={<UserSearch />}
                   style={{ maxWidth: "min(50vw, 25rem)" }}
                   onItemSubmit={goToProfile}
+                  rightSectionWidth="2rem"
+                  rightSection={isFetching ? <Loader size="xs" /> : null}
                 />
               )}
             </Group>

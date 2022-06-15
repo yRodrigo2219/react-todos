@@ -1,3 +1,4 @@
+// Libs Gráficas
 import {
   Input,
   Center,
@@ -10,11 +11,16 @@ import {
   Anchor,
   Checkbox,
 } from "@mantine/core";
-import { useForm } from "@mantine/form";
-import { Link } from "react-router-dom";
 import { Mail, Lock } from "tabler-icons-react";
 
+// React
+import { Link } from "react-router-dom";
+
+// Custom Components
 import FullLogo from "../../assets/FullLogo.png";
+
+// Hooks & Misc.
+import { useForm } from "@mantine/form";
 import { useAuth } from "../../contexts/auth";
 
 export default function LoginPage() {

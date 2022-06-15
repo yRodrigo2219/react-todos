@@ -4,11 +4,11 @@ export const useFetch = (method, url, options = {}) => {
   const [data, setData] = useState(null);
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState(false);
-  const [forceUpdate, setForceUpdate] = useState(false);
+  const [toggleUpdate, setToggleUpdate] = useState(true);
 
   useEffect(() => {
     setIsFetching(true);
-    method(url, options)
+    method(url, options) // faz a requisição
       .then((res) => {
         setData(res.data);
       })
@@ -19,7 +19,12 @@ export const useFetch = (method, url, options = {}) => {
         setIsFetching(false);
       });
     // eslint-disable-next-line
-  }, [url, forceUpdate]);
+  }, [url, toggleUpdate]);
 
-  return { data, isFetching, error, forceUpdate: () => setForceUpdate(true) };
+  return {
+    data,
+    isFetching,
+    error,
+    forceUpdate: () => setToggleUpdate(!toggleUpdate),
+  };
 };

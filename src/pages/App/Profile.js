@@ -1,3 +1,4 @@
+// Libs Gráficas
 import {
   Container,
   Stack,
@@ -7,8 +8,6 @@ import {
   Text,
   Group,
   Button,
-  TextInput,
-  Textarea,
   Center,
   RadioGroup,
   Radio,
@@ -16,65 +15,80 @@ import {
   LoadingOverlay,
 } from "@mantine/core";
 import { Trash, Edit, Plus } from "tabler-icons-react";
+
+// React
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
+// Custom Components
 import ProfileInfo from "../../components/ProfileInfo";
+import openEditTaskModal from "../../components/Modals/EditTask";
+import openAddTaskModal from "../../components/Modals/AddTask";
+import openDeleteTaskModal from "../../components/Modals/DeleteTask";
+import openErrorModal from "../../components/Modals/Error";
+
+// Hooks & Misc.
 import { useAuth } from "../../contexts/auth";
-import {
-  createToDo,
-  deleteToDo,
-  getUserInfo,
-  getUserToDos,
-  updateToDo,
-} from "../../services/api";
 import { useModals } from "@mantine/modals";
+import { useFetch } from "../../hooks/useFetch";
+import api, { createToDo, deleteToDo, updateToDo } from "../../services/api";
 
 export default function ProfilePage({ own }) {
   const { user, logout } = useAuth();
 
   const { username } = useParams();
-  const [isOwner, setIsOwner] = useState(own);
+  const [isOwner, setIsOwner] = useState(own ?? username === user?.username);
 
   const [filter, setFilter] = useState({
     visibility: isOwner ? "all" : "public",
     status: "all",
   });
-  const [tasks, setTasks] = useState([]);
-  const [userInfo, setUserInfo] = useState(null);
-  const [shouldUpdateTasks, setShouldUpdateTasks] = useState(false);
+
+  const {
+    data: todos,
+    isFetching: isFetchingTodos,
+    error: fetchingTodoError,
+    forceUpdate: forceUpdateTodos,
+  } = useFetch(
+    api.get,
+    `/api/v1/users/${username ? username : user.username}/todos`,
+    {
+      params: {
+        visibility: filter.visibility,
+        status: filter.status,
+      },
+    }
+  );
+
+  const {
+    data: userInfo,
+    isFetching: isFetchingUserInfo,
+    error: fetchingUserInfoError,
+  } = useFetch(api.get, `/api/v1/users/${username ? username : user.username}`);
 
   const modals = useModals();
 
+  // Mostrando os erros
   useEffect(() => {
-    if (shouldUpdateTasks) {
-      if (username) fetchUserTodos(username);
-      else fetchUserTodos(user.username);
-    }
-    setShouldUpdateTasks(false);
-    // eslint-disable-next-line
-  }, [shouldUpdateTasks]);
-
-  useEffect(() => {
-    if (username) {
-      setIsOwner(username === user?.username);
-      setFilter({
-        ...filter,
-        visibility: username === user?.username ? "all" : "public",
-      });
-      fetchUserInfo(username);
-    } else {
-      setIsOwner(own);
-      setFilter({
-        ...filter,
-        visibility: "all",
-      });
-      fetchUserInfo(user.username);
+    if (fetchingTodoError) {
+      if (fetchingTodoError.response.status === 401) logout(); // caso não authorizado
+      openErrorModal(modals, "Erro ao receber as tarefas!");
     }
 
-    setShouldUpdateTasks(true);
+    if (fetchingUserInfoError) {
+      if (fetchingUserInfoError.response.status === 401) logout(); // caso não authorizado
+      modals.closeAll();
+      openErrorModal(modals, "Usuário inválido!");
+    }
     // eslint-disable-next-line
-  }, [username, own, user]);
+  }, [fetchingTodoError, fetchingUserInfoError]);
+
+  // Checka se o novo usuario é dono
+  useEffect(() => {
+    if (userInfo?.username === user?.username) setIsOwner(true);
+    else setIsOwner(false);
+    // eslint-disable-next-line
+  }, [userInfo]);
 
   function handleFilterChange(key, value) {
     setFilter({
@@ -82,175 +96,42 @@ export default function ProfilePage({ own }) {
       [key]: value,
     });
 
-    setShouldUpdateTasks(true);
+    forceUpdateTodos();
   }
 
   async function handleTaskAdd(newTask) {
     try {
       await createToDo(user.username, newTask);
-      setShouldUpdateTasks(true);
+      forceUpdateTodos();
     } catch (error) {
       const errorList = error.response.data.errors;
-      openErrorModal("Erro ao adicionar tarefa", errorList);
+      openErrorModal(modals, "Erro ao adicionar tarefa", errorList);
     }
   }
 
   async function handleTaskUpdate(id, change) {
     try {
       await updateToDo(user.username, id, change);
-      setShouldUpdateTasks(true);
+      forceUpdateTodos();
     } catch (error) {
       const errorList = error.response.data.errors;
-      openErrorModal("Erro ao modificar tarefa", errorList);
+      openErrorModal(modals, "Erro ao modificar tarefa", errorList);
     }
   }
 
   async function handleTaskDelete(id) {
     try {
       await deleteToDo(user.username, id);
-      setShouldUpdateTasks(true);
+      forceUpdateTodos();
     } catch (error) {
       const errorList = error.response.data.errors;
-      openErrorModal("Erro ao deletar tarefa", errorList);
+      openErrorModal(modals, "Erro ao deletar tarefa", errorList);
     }
-  }
-
-  async function fetchUserInfo(username) {
-    try {
-      const info = await getUserInfo(username);
-
-      setUserInfo(info);
-    } catch (error) {
-      if (error.response.status === 401) logout();
-      else alert("Usuário inválido!");
-    }
-  }
-
-  async function fetchUserTodos(username) {
-    try {
-      const todos = await getUserToDos(username, filter);
-
-      setTasks(todos);
-    } catch (error) {
-      if (error.response.status === 401) logout();
-    }
-  }
-
-  function openErrorModal(title, errorList) {
-    const id = modals.openModal({
-      title,
-
-      children: (
-        <>
-          {errorList.map((err) => (
-            <Text color="red">{err}</Text>
-          ))}
-          <Button
-            onClick={() => {
-              modals.closeModal(id);
-            }}
-            mt="md"
-          >
-            Okay
-          </Button>
-        </>
-      ),
-    });
-  }
-
-  function openDeleteTaskModal(id) {
-    modals.openConfirmModal({
-      title: "Deletar tarefa",
-      centered: true,
-      children: (
-        <Text size="sm">
-          Tem certeza que quer deletar essa tarefa? Essa ação não é reversivel!
-        </Text>
-      ),
-      labels: {
-        confirm: "Deletar tarefa",
-        cancel: "Não, deixa ela ai",
-      },
-      confirmProps: { color: "red" },
-      onConfirm: () => handleTaskDelete(id),
-    });
-  }
-
-  function openAddTaskModal() {
-    const id = modals.openModal({
-      title: "Adicionar nova tarefa",
-      children: (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleTaskAdd({
-              title: e.target[0].value,
-              description: e.target[1].value,
-              is_public: e.target[2].checked,
-              is_done: e.target[3].checked,
-            });
-            modals.closeModal(id);
-          }}
-        >
-          <Stack>
-            <TextInput label="Título" placeholder="Título da tarefa" required />
-            <Textarea
-              label="Descrição"
-              placeholder="Descreva sua tarefa aqui"
-              required
-            />
-            <Checkbox label="É pública?" />
-            <Checkbox label="Já está concluída?" />
-            <Button fullWidth mt="md" type="submit" leftIcon={<Plus />}>
-              Adicionar Tarefa
-            </Button>
-          </Stack>
-        </form>
-      ),
-    });
-  }
-
-  function openEditTaskModal(task) {
-    const id = modals.openModal({
-      title: "Editar tarefa",
-      children: (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleTaskUpdate(task.id, {
-              title: e.target[0].value,
-              description: e.target[1].value,
-              is_public: e.target[2].checked,
-            });
-            modals.closeModal(id);
-          }}
-        >
-          <Stack>
-            <TextInput
-              label="Título"
-              placeholder="Título da tarefa"
-              defaultValue={task.title}
-              required
-            />
-            <Textarea
-              label="Descrição"
-              placeholder="Descreva sua tarefa aqui"
-              defaultValue={task.description}
-              required
-            />
-            <Checkbox label="É pública?" defaultChecked={task.is_public} />
-            <Button fullWidth mt="md" type="submit">
-              Confirmar Edição
-            </Button>
-          </Stack>
-        </form>
-      ),
-    });
   }
 
   return (
     <Container size="xl">
-      <LoadingOverlay visible={false} />
+      <LoadingOverlay visible={isFetchingTodos || isFetchingUserInfo} />
       <Container size="lg">
         <Stack spacing="xl">
           <Space h="md" />
@@ -287,14 +168,17 @@ export default function ProfilePage({ own }) {
 
           {isOwner && (
             <Center>
-              <Button leftIcon={<Plus />} onClick={openAddTaskModal}>
+              <Button
+                leftIcon={<Plus />}
+                onClick={() => openAddTaskModal(modals, handleTaskAdd)}
+              >
                 Adicionar Tarefa
               </Button>
             </Center>
           )}
 
           <Accordion disableIconRotation multiple>
-            {tasks.map((task) => (
+            {todos?.map((task) => (
               <Accordion.Item
                 key={task.id}
                 label={task.title}
@@ -319,7 +203,9 @@ export default function ProfilePage({ own }) {
                         variant="outline"
                         leftIcon={<Edit />}
                         size="xs"
-                        onClick={() => openEditTaskModal(task)}
+                        onClick={() =>
+                          openEditTaskModal(modals, task, handleTaskUpdate)
+                        }
                       >
                         Editar
                       </Button>
@@ -329,7 +215,9 @@ export default function ProfilePage({ own }) {
                       variant="outline"
                       leftIcon={<Trash />}
                       size="xs"
-                      onClick={() => openDeleteTaskModal(task.id)}
+                      onClick={() =>
+                        openDeleteTaskModal(modals, task.id, handleTaskDelete)
+                      }
                     >
                       Deletar
                     </Button>
