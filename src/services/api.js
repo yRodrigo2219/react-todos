@@ -25,6 +25,24 @@ export async function createUser(name, username, email, password) {
   return response.data;
 }
 
+export async function deleteUser(username, password) {
+  const response = await api.delete(`/api/v1/users/${username}`, {
+    params: {
+      password: await encryptPassword(password),
+    },
+  });
+
+  return response.data;
+}
+
+export async function updateUser(username, change) {
+  const response = await api.put(`/api/v1/users/${username}`, {
+    ...change,
+  });
+
+  return response.data;
+}
+
 export async function createToDo(username, task) {
   const response = await api.post(`/api/v1/users/${username}/todos`, {
     ...task,

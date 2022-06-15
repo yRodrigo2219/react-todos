@@ -18,20 +18,26 @@ import { UserCircle, At, Mail, Lock, CircleX } from "tabler-icons-react";
 
 // React
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 // Custom Components
 import ProfileInfo from "../../components/ProfileInfo";
 import openErrorModal from "../../components/Modals/Error";
+import openDeleteProfile from "../../components/Modals/DeleteProfile";
+import openInfoModal from "../../components/Modals/Info";
 
 // Hooks & Misc.
 import { useAuth } from "../../contexts/auth";
 import { useFetch } from "../../hooks/useFetch";
 import { useModals } from "@mantine/modals";
-import { useForm, useMediaQuery } from "@mantine/hooks";
-import api from "../../services/api";
+import { useMediaQuery } from "@mantine/hooks";
+import { useForm } from "@mantine/form";
+import api, { deleteUser, updateUser } from "../../services/api";
+import regex_validate from "../../services/regex";
 
 export default function EditProfile() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const {
     data: userInfo,
@@ -46,6 +52,16 @@ export default function EditProfile() {
       email: "",
       password: "",
       confirmPassword: "",
+    },
+
+    validate: {
+      email: regex_validate.email,
+      name: regex_validate.name,
+      username: regex_validate.username,
+      password: (value) =>
+        value === "" ? null : regex_validate.password(value),
+      confirmPassword: (value, values) =>
+        value === values.password ? null : "As senhas não combinam",
     },
   });
 
@@ -82,6 +98,35 @@ export default function EditProfile() {
     // eslint-disable-next-line
   }, [fetchingUserInfoError]);
 
+  async function handleUserEdit({ username, ...others }) {
+    if (others.password === "") {
+      delete others.password;
+      delete others.confirmPassword;
+    }
+
+    try {
+      await updateUser(username, others);
+
+      openInfoModal(modals, "Atualizado com sucesso!");
+    } catch (error) {
+      openErrorModal(modals, "Erro ao atualizar informações!");
+    }
+  }
+
+  async function handleUserDeletion(info) {
+    openDeleteProfile(modals, async () => {
+      try {
+        await deleteUser(userInfo.username, info.password);
+
+        logout();
+        navigate("/");
+        openInfoModal(modals, "Perfil deletado com sucesso!");
+      } catch (error) {
+        openErrorModal(modals, "Erro ao deletar conta!");
+      }
+    });
+  }
+
   return (
     <Container size="xl" pb="xl">
       <LoadingOverlay visible={isFetchingUserInfo} />
@@ -93,7 +138,7 @@ export default function EditProfile() {
             <ProfileInfo name={userInfo.name} username={userInfo.username} />
           )}
 
-          <form>
+          <form onSubmit={editForm.onSubmit(handleUserEdit)}>
             <Container size="sm">
               <Divider
                 my="md"
@@ -115,6 +160,7 @@ export default function EditProfile() {
                     placeholder="Seu nome de usuário"
                     label="Usuário"
                     required
+                    disabled
                     size="md"
                     icon={<At />}
                     {...editForm.getInputProps("username")}
@@ -156,7 +202,7 @@ export default function EditProfile() {
             </Container>
           </form>
 
-          <form>
+          <form onSubmit={exclusionForm.onSubmit(handleUserDeletion)}>
             <Container size="sm">
               <Divider
                 color="red"

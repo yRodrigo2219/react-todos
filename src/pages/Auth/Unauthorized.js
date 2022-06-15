@@ -11,6 +11,7 @@ export default function Unauthorized() {
 
   useEffect(() => {
     if (isFinished()) navigate("/");
+    // eslint-disable-next-line
   }, [isFinished()]);
 
   return (

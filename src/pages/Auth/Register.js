@@ -21,13 +21,14 @@ import { Link, useNavigate } from "react-router-dom";
 import FullLogo from "../../assets/FullLogo.png";
 import TodoHero from "../../assets/TodoHero.png";
 import openErrorModal from "../../components/Modals/Error";
+import openInfoModal from "../../components/Modals/Info";
 
 // Hooks & Misc.
 import { useMediaQuery } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import { useModals } from "@mantine/modals";
 import { createUser } from "../../services/api";
-import openInfoModal from "../../components/Modals/Info";
+import regex_validate from "../../services/regex";
 
 export default function RegisterPage() {
   const form = useForm({
@@ -37,6 +38,16 @@ export default function RegisterPage() {
       email: "",
       password: "",
       confirmPassword: "",
+    },
+
+    validate: {
+      email: regex_validate.email,
+      name: regex_validate.name,
+      username: regex_validate.username,
+      password: (value) =>
+        value === "" ? null : regex_validate.password(value),
+      confirmPassword: (value, values) =>
+        value === values.password ? null : "As senhas não combinam",
     },
   });
 
