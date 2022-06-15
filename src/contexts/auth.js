@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import openErrorModal from "../components/Modals/Error";
 
 import api, { apiLogin } from "../services/api";
 
@@ -14,7 +15,7 @@ export function useAuth() {
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
 
-  async function login(info) {
+  async function login(modals, info) {
     try {
       const response = await apiLogin(info.email, info.password);
 
@@ -25,7 +26,7 @@ export default function AuthProvider({ children }) {
         localStorage.setItem(LOCAL_USER, JSON.stringify(response));
       else sessionStorage.setItem(LOCAL_USER, JSON.stringify(response));
     } catch (error) {
-      alert("Erro no login!");
+      openErrorModal(modals, "Erro no login!");
     }
   }
 

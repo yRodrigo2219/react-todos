@@ -22,6 +22,7 @@ import FullLogo from "../../assets/FullLogo.png";
 // Hooks & Misc.
 import { useForm } from "@mantine/form";
 import { useAuth } from "../../contexts/auth";
+import { useModals } from "@mantine/modals";
 
 export default function LoginPage() {
   const form = useForm({
@@ -32,6 +33,7 @@ export default function LoginPage() {
     },
   });
   const { login } = useAuth();
+  const modals = useModals();
 
   return (
     <Center style={{ minHeight: "100vh" }}>
@@ -49,7 +51,7 @@ export default function LoginPage() {
         })}
         my="3vh"
       >
-        <form onSubmit={form.onSubmit(login)}>
+        <form onSubmit={form.onSubmit((info) => login(modals, info))}>
           <Stack justify="flex-start" spacing="xl">
             <Center>
               <Image

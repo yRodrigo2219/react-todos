@@ -21,6 +21,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 // Custom Components
+import InvalidProfile from "./InvalidProfile";
 import ProfileInfo from "../../components/ProfileInfo";
 import openEditTaskModal from "../../components/Modals/EditTask";
 import openAddTaskModal from "../../components/Modals/AddTask";
@@ -85,8 +86,13 @@ export default function ProfilePage({ own }) {
 
   // Checka se o novo usuario é dono
   useEffect(() => {
-    if (userInfo?.username === user?.username) setIsOwner(true);
-    else setIsOwner(false);
+    if (userInfo?.username === user?.username) {
+      setIsOwner(true);
+      handleFilterChange("visibility", "all");
+    } else {
+      setIsOwner(false);
+      handleFilterChange("visibility", "public");
+    }
     // eslint-disable-next-line
   }, [userInfo]);
 
@@ -132,102 +138,116 @@ export default function ProfilePage({ own }) {
   return (
     <Container size="xl">
       <LoadingOverlay visible={isFetchingTodos || isFetchingUserInfo} />
-      <Container size="lg">
-        <Stack spacing="xl">
-          <Space h="md" />
+      {!fetchingUserInfoError ? (
+        <Container size="lg">
+          <Stack spacing="xl">
+            <Space h="md" />
 
-          {userInfo && (
-            <ProfileInfo name={userInfo.name} username={userInfo.username} />
-          )}
+            {userInfo && (
+              <ProfileInfo name={userInfo.name} username={userInfo.username} />
+            )}
 
-          <Group position="apart">
-            <Space h="xl" />
-            <Paper shadow="xs" p="md">
-              <RadioGroup
-                label="Selecione a visibilidade"
-                value={filter.visibility}
-                onChange={(e) => handleFilterChange("visibility", e)}
-                spacing="xs"
-              >
-                <Radio value="all" label="Todos" disabled={!isOwner} />
-                <Radio value="private" label="Privados" disabled={!isOwner} />
-                <Radio value="public" label="Públicos" disabled={!isOwner} />
-              </RadioGroup>
-              <RadioGroup
-                label="Selecione o status"
-                value={filter.status}
-                onChange={(e) => handleFilterChange("status", e)}
-                spacing="xs"
-              >
-                <Radio value="all" label="Todos" />
-                <Radio value="done" label="Feitos" />
-                <Radio value="not_done" label="Não feitos" />
-              </RadioGroup>
-            </Paper>
-          </Group>
+            <Group position="apart">
+              <Space h="xl" />
+              <Paper shadow="xs" p="md">
+                <Stack>
+                  <RadioGroup
+                    label="Selecione a visibilidade"
+                    value={isOwner ? filter.visibility : "public"}
+                    onChange={(e) => handleFilterChange("visibility", e)}
+                    spacing="xs"
+                  >
+                    <Radio value="all" label="Todos" disabled={!isOwner} />
+                    <Radio
+                      value="private"
+                      label="Privados"
+                      disabled={!isOwner}
+                    />
+                    <Radio
+                      value="public"
+                      label="Públicos"
+                      disabled={!isOwner}
+                    />
+                  </RadioGroup>
+                  <RadioGroup
+                    label="Selecione o status"
+                    value={filter.status}
+                    onChange={(e) => handleFilterChange("status", e)}
+                    spacing="xs"
+                  >
+                    <Radio value="all" label="Todos" />
+                    <Radio value="done" label="Feitos" />
+                    <Radio value="not_done" label="Não feitos" />
+                  </RadioGroup>
+                </Stack>
+              </Paper>
+            </Group>
 
-          {isOwner && (
-            <Center>
-              <Button
-                leftIcon={<Plus />}
-                onClick={() => openAddTaskModal(modals, handleTaskAdd)}
-              >
-                Adicionar Tarefa
-              </Button>
-            </Center>
-          )}
+            {isOwner && (
+              <Center>
+                <Button
+                  leftIcon={<Plus />}
+                  onClick={() => openAddTaskModal(modals, handleTaskAdd)}
+                >
+                  Adicionar Tarefa
+                </Button>
+              </Center>
+            )}
 
-          <Accordion disableIconRotation multiple>
-            {todos?.map((task) => (
-              <Accordion.Item
-                key={task.id}
-                label={task.title}
-                icon={
-                  <Checkbox
-                    size="md"
-                    radius="xl"
-                    checked={task.is_done}
-                    onChange={() => {
-                      isOwner &&
-                        handleTaskUpdate(task.id, { is_done: !task.is_done });
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                }
-              >
-                <Text>{task.description}</Text>
-                {isOwner ? (
-                  <Group position="right">
-                    {task.is_done ? null : (
+            <Accordion disableIconRotation multiple>
+              {todos?.map((task) => (
+                <Accordion.Item
+                  key={task.id}
+                  label={task.title}
+                  icon={
+                    <Checkbox
+                      size="md"
+                      radius="xl"
+                      checked={task.is_done}
+                      onChange={() => {
+                        isOwner &&
+                          handleTaskUpdate(task.id, { is_done: !task.is_done });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  }
+                >
+                  <Text>{task.description}</Text>
+                  {isOwner ? (
+                    <Group position="right">
+                      {task.is_done ? null : (
+                        <Button
+                          variant="outline"
+                          leftIcon={<Edit />}
+                          size="xs"
+                          onClick={() =>
+                            openEditTaskModal(modals, task, handleTaskUpdate)
+                          }
+                        >
+                          Editar
+                        </Button>
+                      )}
                       <Button
+                        color="red"
                         variant="outline"
-                        leftIcon={<Edit />}
+                        leftIcon={<Trash />}
                         size="xs"
                         onClick={() =>
-                          openEditTaskModal(modals, task, handleTaskUpdate)
+                          openDeleteTaskModal(modals, task.id, handleTaskDelete)
                         }
                       >
-                        Editar
+                        Deletar
                       </Button>
-                    )}
-                    <Button
-                      color="red"
-                      variant="outline"
-                      leftIcon={<Trash />}
-                      size="xs"
-                      onClick={() =>
-                        openDeleteTaskModal(modals, task.id, handleTaskDelete)
-                      }
-                    >
-                      Deletar
-                    </Button>
-                  </Group>
-                ) : null}
-              </Accordion.Item>
-            ))}
-          </Accordion>
-        </Stack>
-      </Container>
+                    </Group>
+                  ) : null}
+                </Accordion.Item>
+              ))}
+            </Accordion>
+          </Stack>
+        </Container>
+      ) : (
+        <InvalidProfile />
+      )}
     </Container>
   );
 }

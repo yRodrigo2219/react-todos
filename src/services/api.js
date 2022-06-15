@@ -25,21 +25,6 @@ export async function createUser(name, username, email, password) {
   return response.data;
 }
 
-export async function getUserInfo(username) {
-  const response = await api.get(`/api/v1/users/${username}`);
-  console.log(response.data);
-
-  return response.data;
-}
-
-export async function getUserToDos(username, filter) {
-  const response = await api.get(`/api/v1/users/${username}/todos`, {
-    params: { ...filter },
-  });
-
-  return response.data;
-}
-
 export async function createToDo(username, task) {
   const response = await api.post(`/api/v1/users/${username}/todos`, {
     ...task,

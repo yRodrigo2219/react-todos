@@ -7,12 +7,15 @@ export const useFetch = (method, url, options = {}) => {
   const [toggleUpdate, setToggleUpdate] = useState(true);
 
   useEffect(() => {
+    setError(false);
     setIsFetching(true);
+
     method(url, options) // faz a requisição
       .then((res) => {
         setData(res.data);
       })
       .catch((err) => {
+        setData(null);
         setError(err);
       })
       .finally(() => {
