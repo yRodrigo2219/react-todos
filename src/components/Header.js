@@ -43,7 +43,7 @@ export default function Header() {
   const navigate = useNavigate();
 
   const [search, setSearch] = useState("");
-  const [debouncedSearch] = useDebouncedValue(search, 500);
+  const [debouncedSearch] = useDebouncedValue(search, 300);
   const { data, isFetching } = useFetch(
     api.get,
     `/api/v1/users?search=${debouncedSearch}`

@@ -43,6 +43,7 @@ export default function EditProfile() {
     data: userInfo,
     isFetching: isFetchingUserInfo,
     error: fetchingUserInfoError,
+    forceUpdate: forceUserInfoUpdate,
   } = useFetch(api.get, `/api/v1/users/${user?.username}`);
 
   const editForm = useForm({
@@ -108,6 +109,7 @@ export default function EditProfile() {
       await updateUser(username, others);
 
       openInfoModal(modals, "Atualizado com sucesso!");
+      forceUserInfoUpdate();
     } catch (error) {
       openErrorModal(modals, "Erro ao atualizar informações!");
     }
